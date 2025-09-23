@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Mode - PH Dialect Translator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, 
+                #8B0000 0%,    /* Deep Red */
+                #228B22 15%,   /* Forest Green */
+                #FFFFFF 30%,   /* White */
+                #8B4513 45%,   /* Brown */
+                #FFD700 60%,   /* Gold */
+                #2F1B14 75%,   /* Dark Brown */
+                #DC143C 90%,   /* Crimson */
+                #006400 100%   /* Dark Green */
+            );
+            min-height: 100vh;
+            color: #2F1B14;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(220, 20, 60, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(34, 139, 34, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.95), rgba(34, 139, 34, 0.95));
+            color: white;
+            text-align: center;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: headerShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes headerShimmer {
+            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(45deg, #FFD700, #FFFFFF, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Tab Navigation Styles */
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 0;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(255, 215, 0, 0.1));
+            color: #2F1B14;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            border-right: 2px solid rgba(139, 0, 0, 0.2);
+        }
+
+        .nav-tab:last-child {
+            border-right: none;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #DC143C, #228B22);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), rgba(34, 139, 34, 0.2));
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .lesson-content-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border: 3px solid transparent;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)),
+                              linear-gradient(45deg, #DC143C, #FFD700, #228B22);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+        }
+
+        .lesson-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(34, 139, 34, 0.1));
+            border-radius: 12px;
+            border: 2px solid rgba(220, 20, 60, 0.2);
+        }
+
+        .info-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: #2F1B14;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .highlight-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .highlight-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+        }
+
+        .highlight-btn.yellow {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+        }
+
+        .highlight-btn.yellow:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+
+        .highlight-btn.yellow.active {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .highlight-btn.red {
+            background: linear-gradient(45deg, #DC143C, #FF6347);
+        }
+
+        .highlight-btn.red:hover {
+            background: linear-gradient(45deg, #B22222, #FF4500);
+            transform: translateY(-2px);
+        }
+
+        .highlight-btn.red.active {
+            box-shadow: 0 0 20px rgba(220, 20, 60, 0.6);
+        }
+
+        .highlight-btn.green {
+            background: linear-gradient(45deg, #228B22, #32CD32);
+        }
+
+        .highlight-btn.green:hover {
+            background: linear-gradient(45deg, #006400, #00FF00);
+            transform: translateY(-2px);
+        }
+
+        .highlight-btn.green.active {
+            box-shadow: 0 0 20px rgba(34, 139, 34, 0.6);
+        }
+
+        .highlight-btn.blue {
+            background: linear-gradient(45deg, #4169E1, #1E90FF);
+        }
+
+        .highlight-btn.blue:hover {
+            background: linear-gradient(45deg, #0000FF, #00BFFF);
+            transform: translateY(-2px);
+        }
+
+        .highlight-btn.blue.active {
+            box-shadow: 0 0 20px rgba(65, 105, 225, 0.6);
+        }
+
+        .tool-btn {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            color: white;
+        }
+
+        .tool-btn:hover {
+            background: linear-gradient(45deg, #A0522D, #D2691E);
+            transform: translateY(-2px);
+        }
+
+        .note-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .lesson-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .study-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 220, 0.95));
+            border-radius: 15px;
+            padding: 30px;
+            border: 3px solid transparent;
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 220, 0.95)),
+                              linear-gradient(45deg, #8B0000, #FFD700);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            position: relative;
+            overflow-y: auto;
+            max-height: 600px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(139, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+        }
+
+        .panel-title {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .panel-title.original {
+            color: #DC143C;
+        }
+
+        .panel-title.translated {
+            color: #228B22;
+        }
+
+        .word-count {
+            font-size: 14px;
+            color: #666;
+            background: rgba(139, 69, 19, 0.1);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .study-text {
+            line-height: 1.8;
+            font-size: 18px;
+            color: #2F1B14;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        .study-text h2 {
+            color: #8B0000;
+            margin: 25px 0 15px 0;
+            font-size: 1.4em;
+            border-left: 4px solid #FFD700;
+            padding-left: 15px;
+        }
+
+        .study-text h3 {
+            color: #228B22;
+            margin: 20px 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .study-text p {
+            margin-bottom: 18px;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: text;
+            position: relative;
+        }
+
+        .study-text p:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Highlight Styles */
+        .highlighted {
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .highlighted.yellow {
+            background: rgba(255, 215, 0, 0.4);
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .highlighted.red {
+            background: rgba(220, 20, 60, 0.4);
+            border-bottom: 2px solid #DC143C;
+        }
+
+        .highlighted.green {
+            background: rgba(34, 139, 34, 0.4);
+            border-bottom: 2px solid #228B22;
+        }
+
+        .highlighted.blue {
+            background: rgba(65, 105, 225, 0.4);
+            border-bottom: 2px solid #4169E1;
+        }
+
+        .highlighted:hover::after {
+            content: '📝 Click to add note';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            background: rgba(47, 27, 20, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 100;
+        }
+
+        /* Notes Sidebar */
+        .notes-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 2px solid rgba(139, 69, 19, 0.3);
+        }
+
+        .notes-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .notes-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #8B0000;
+        }
+
+        .notes-count {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .note-item {
+            background: linear-gradient(135deg, rgba(245, 245, 220, 0.8), rgba(255, 255, 255, 0.8));
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #FFD700;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .note-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .note-item.yellow {
+            border-left-color: #FFD700;
+        }
+
+        .note-item.red {
+            border-left-color: #DC143C;
+        }
+
+        .note-item.green {
+            border-left-color: #228B22;
+        }
+
+        .note-item.blue {
+            border-left-color: #4169E1;
+        }
+
+        .note-text {
+            font-weight: bold;
+            color: #2F1B14;
+            margin-bottom: 8px;
+        }
+
+        .note-content {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.edit {
+            background: linear-gradient(45deg, #228B22, #32CD32);
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: linear-gradient(45deg, #DC143C, #FF6347);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Study Statistics */
+        .study-stats {
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.1), rgba(255, 215, 0, 0.1));
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid rgba(34, 139, 34, 0.3);
+        }
+
+        .stats-title {
+            color: #228B22;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #228B22;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #8B0000;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Custom Scrollbar */
+        .study-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .study-panel::-webkit-scrollbar-track {
+            background: rgba(139, 69, 19, 0.1);
+            border-radius: 4px;
+        }
+
+        .study-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #8B4513, #FFD700);
+            border-radius: 4px;
+        }
+
+        .study-panel::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #A0522D, #FFA500);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .lesson-content {
+                grid-template-columns: 1fr;
+            }
+
+            .highlight-tools {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .highlight-tools, .note-tools {
+                grid-template-columns: 1fr;
+            }
+
+            .lesson-info {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .status-message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .status-message.success {
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.2), rgba(144, 238, 144, 0.2));
+            color: #006400;
+            border: 2px solid #228B22;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Modal for adding notes */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            color: #8B0000;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .modal textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.save {
+            background: linear-gradient(45deg, #228B22, #32CD32);
+            color: white;
+        }
+
+        .modal-btn.cancel {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🇵🇭 E-book PH Dialect Translator</h1>
+        <p>Professional Multi-Dialect Translation Platform</p>
+    </div>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab" onclick="window.location.href='main.html'">🔄 Translator</button>
+            <button class="nav-tab" onclick="window.location.href='parallel.html'">📖 Parallel Reading</button>
+            <button class="nav-tab active" onclick="window.location.href='lesson.html'">📝 Lesson Mode</button>
+            <button class="nav-tab" onclick="showTab('quiz')">🎯 Quiz Generator</button>
+            <button class="nav-tab" onclick="showTab('flashcards')">🎴 Flashcards</button>
+            <button class="nav-tab" onclick="showTab('offline')">💾 Offline Mode</button>
+        </div>
+
+        <!-- Lesson Mode Content -->
+        <!-- Lesson Mode Content -->
+        <div class="lesson-content-wrapper">
+            <!-- Lesson Toolbar -->
+            <div class="lesson-toolbar">
+            <!-- Lesson Information -->
+            <div class="lesson-info">
+                <div class="info-badge">
+                    <span>📚</span>
+                    <span>Philippine Folk Tales - Chapter 1</span>
+                </div>
+                <div class="info-badge">
+                    <span>🌏</span>
+                    <span>English ↔ Tagalog</span>
+                </div>
+                <div class="info-badge">
+                    <span>🎯</span>
+                    <span>Focus: Vocabulary</span>
+                </div>
+            </div>
+
+            <!-- Highlighting Tools -->
+            <div class="highlight-tools">
+                <button class="highlight-btn yellow" onclick="setHighlightColor('yellow')">
+                    💛 Important
+                </button>
+                <button class="highlight-btn red" onclick="setHighlightColor('red')">
+                    ❤️ Key Terms
+                </button>
+                <button class="highlight-btn green" onclick="setHighlightColor('green')">
+                    💚 Definitions
+                </button>
+                <button class="highlight-btn blue" onclick="setHighlightColor('blue')">
+                    💙 Examples
+                </button>
+                <button class="highlight-btn tool-btn" onclick="clearHighlights()">
+                    🧹 Clear All
+                </button>
+                <button class="highlight-btn tool-btn" onclick="exportNotes()">
+                    📤 Export Notes
+                </button>
+            </div>
+
+            <!-- Note-taking Tools -->
+            <div class="note-tools">
+                <button class="highlight-btn tool-btn" onclick="addQuickNote()">
+                    📝 Quick Note
+                </button>
+                <button class="highlight-btn tool-btn" onclick="addTranslationNote()">
+                    🔤 Translation Help
+                </button>
+                <button class="highlight-btn tool-btn" onclick="addVocabularyNote()">
+                    📖 Vocabulary
+                </button>
+                <button class="highlight-btn tool-btn" onclick="saveStudySession()">
+                    💾 Save Session
+                </button>
+            </div>
+        </div>
+
+        <!-- Lesson Content -->
+        <div class="lesson-content">
+            <!-- Original Text Panel -->
+            <div class="study-panel">
+                <div class="panel-header">
+                    <div class="panel-title original">Study Material - Original</div>
+                    <div class="word-count">842 words</div>
+                </div>
+                <div class="study-text" id="originalStudyText">
+                    <h2>The Legend of Mariang Makiling</h2>
+                    
+                    <p>Deep in the heart of <span class="highlighted yellow" data-note="Mountain in Laguna province, famous for its mystical guardian">Mount Makiling</span> in Laguna province lives a beautiful <span class="highlighted green" data-note="A nature spirit or fairy in Philippine mythology">diwata</span> named Maria. She is known throughout the region for her kindness to the people living near the mountain, often helping <span class="highlighted blue" data-note="Farmers - 'magsasaka' in Tagalog">farmers</span> with their crops and protecting travelers from harm.</p>
+                    
+                    <p>Mariang Makiling was said to appear as a lovely young woman with long, flowing hair that <span class="highlighted yellow" data-note="Describing the golden appearance of her hair">shimmered like gold</span> in the sunlight, and wearing a pristine white dress that never seemed to get dirty despite her wanderings through the forest.</p>
+                    
+                    <p>The people of the surrounding <span class="highlighted green" data-note="Villages or neighborhoods in the Philippines">barrios</span> greatly respected and loved Maria. They would leave offerings of freshly picked flowers, rice, and other simple foods at the base of the mountain as tokens of their <span class="highlighted red" data-note="Gratitude - 'pasasalamat' in Tagalog">gratitude</span> for her continued protection and blessings.</p>
+                    
+                    <h3>Her Benevolent Nature</h3>
+                    
+                    <p>Maria would often emerge from the dense forests to <span class="highlighted blue" data-note="Trade or do business with locals">trade with the townspeople</span>, offering gold nuggets and precious stones in exchange for simple everyday goods like salt, rice, clothing, and other necessities that she could not find in her mountain dwelling.</p>
+                    
+                    <p>In return for the people's respect and offerings, Maria would ensure that their <span class="highlighted yellow" data-note="Crop yields - 'ani' in Tagalog">harvests</span> were always bountiful, their families were protected from natural disasters, and their livestock remained healthy and strong throughout the seasons.</p>
+                    
+                    <p>The legend tells us that Maria possessed <span class="highlighted red" data-note="Supernatural abilities">magical powers</span> that allowed her to control the weather around Mount Makiling, bringing gentle rains when needed for the crops and sunshine when the farmers needed to dry their harvest.</p>
+                </div>
+            </div>
+
+            <!-- Translated Text Panel -->
+            <div class="study-panel">
+                <div class="panel-header">
+                    <div class="panel-title translated">Study Material - Translated</div>
+                    <div class="word-count">896 salita</div>
+                </div>
+                <div class="study-text" id="translatedStudyText">
+                    <h2>Ang Alamat ni Mariang Makiling</h2>
+                    
+                    <p>Sa kaibuturan ng <span class="highlighted yellow" data-note="Bundok sa lalawigan ng Laguna, kilala sa mistikong tagapag-bantay">Bundok Makiling</span> sa lalawigan ng Laguna ay nakatira ang isang magandang <span class="highlighted green" data-note="Espiritu ng kalikasan o engkantada sa mitolohiyang Pilipino">diwata</span> na si Maria. Kilala siya sa buong rehiyon dahil sa kanyang kabaitan sa mga taong nakatira malapit sa bundok, madalas siyang tumutulong sa mga <span class="highlighted blue" data-note="Mga magsasaka">magsasaka</span> sa kanilang mga pananim at pinoprotektahan ang mga manlalakbay sa panganib.</p>
+                    
+                    <p>Si Mariang Makiling ay nakilala bilang isang magandang dalaga na may mahabang buhok na <span class="highlighted yellow" data-note="Naglalarawan sa gintong hitsura ng kanyang buhok">kumikintab na parang ginto</span> sa sikat ng araw, at nakasuot ng malinis na puting damit na tila hindi nagkakadumi kahit pa siya ay naglalakad sa kagubatan.</p>
+                    
+                    <p>Ang mga tao sa mga nakapaligid na <span class="highlighted green" data-note="Mga nayon o kapitbahayan sa Pilipinas">barrio</span> ay lubhang gumalang at minahal si Maria. Inihahandog nila ang mga sariwang bulaklak, bigas, at iba pang simpleng pagkain sa paanan ng bundok bilang tanda ng kanilang <span class="highlighted red" data-note="Pasasalamat">pasasalamat</span> sa patuloy niyang pag-iingat at pagpapala.</p>
+                    
+                    <h3>Ang Kanyang Mabuting Kalikasan</h3>
+                    
+                    <p>Madalas na lumalabas si Maria mula sa makapal na kagubatan upang <span class="highlighted blue" data-note="Makipagkalakalan o makipagnegosyo sa mga lokal">makipagkalakalan sa mga tao sa bayan</span>, nag-aalok ng mga gintong butil at mga mahalagang bato kapalit ng mga simpleng pang-araw-araw na gamit tulad ng asin, bigas, damit, at iba pang pangangailangan na hindi niya matagpuan sa kanyang tahanan sa bundok.</p>
+                    
+                    <p>Kapalit ng paggalang at handog ng mga tao, tinitiyak ni Maria na ang kanilang mga <span class="highlighted yellow" data-note="Mga bunga ng pagsasaka - 'ani'">ani</span> ay palaging sagana, ang kanilang mga p
